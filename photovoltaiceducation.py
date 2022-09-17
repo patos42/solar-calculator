@@ -6,14 +6,6 @@ from solarcalculator import SolarCalculator, SolarResult
 # Implementation as described on:
 # https://www.pveducation.org/pvcdrom/welcome-to-pvcdrom
 class PhotoVoltaicEducation(SolarCalculator):
-    # Cosine function that accepts degrees as input.
-    def cos(self, degrees: float) -> float:
-        return math.cos(math.radians(degrees))
-
-    # Sine function that accepts degrees as input.
-    def sin(sle, degrees: float) -> float:
-        return math.sin(math.radians(degrees))
-
     # Returns power density in W/m^2.
     def radiant_power_density(self, day_of_year: int) -> float:
         return (1+ 0.033*self.cos(360*(day_of_year - 2)/365)) * 1.353 * 1000
@@ -25,7 +17,7 @@ class PhotoVoltaicEducation(SolarCalculator):
         return 1/self.cos(zenith)
 
     def air_mass(self, zenith : float) -> float:
-        inverse : float = self.cos(zenith) + 0.50572*(96.07995 - zenith)**(-1.6364)
+        inverse : float = self.cos(zenith) + 0.50572 * (96.07995 - zenith)**(-1.6364) # type: ignore
         return 1/inverse
 
     # The intensity of the direct component of sunlight throughout 
@@ -35,7 +27,7 @@ class PhotoVoltaicEducation(SolarCalculator):
         s : float = 1.353 * 1000 # solar_constant
         e : float = 0.7 # radiation_incident_efficiency
         AM : float = airmass
-        return s * e**(AM**0.678)
+        return s * e**(AM**0.678) # type: ignore
     
     def intensity_direct_elivation(self, airmass : float, elivation_km : float) -> float:
         s : float = 1.353 * 1000 # solar_constant
@@ -43,7 +35,7 @@ class PhotoVoltaicEducation(SolarCalculator):
         a : float = 0.14 # fitted parameter?
         h : float = elivation_km
         AM: float = airmass
-        return s*((1-a*h)*e**(AM**0.678) + a*h)
+        return s*((1-a*h)*e**(AM**0.678) + a*h) # type: ignore
 
     def intensity_global(self, intensity_direct : float) -> float:
         return intensity_direct * 1.1
@@ -104,15 +96,9 @@ class PhotoVoltaicEducation(SolarCalculator):
             return 360 - degrees
         return degrees
 
-    def tilted_surface_radiation_factor(self, elivation : float, tilt_angle : float) -> float:
-        return self.sin(elivation + tilt_angle)
-
-    def orientation_tilt_factor(self, elivation : float, azimuth : float, module_tilt : float, module_angle : float):
-        return self.cos(elivation) * self.sin(module_tilt) * self.cos(module_angle - azimuth) + self.sin(elivation) * self.cos(module_tilt)
-
     def calculate(self, latitude: float, longitude: float, panel_elivation : float, local_time: datetime, timezone_adjustment : float) -> SolarResult:
         lstm : float = self.local_standard_time_meridian(timezone_adjustment)
-        day_of_year : float = local_time.timetuple().tm_yday
+        day_of_year : int = local_time.timetuple().tm_yday
         eot : float = self.equation_of_time(day_of_year)
         tc : float = self.time_correction_factor(longitude, lstm, eot)
         lst : float = self.local_solar_time(local_time.hour + local_time.minute/60, tc)
