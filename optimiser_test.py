@@ -25,6 +25,20 @@ class TestAnalysis(TestCase):
         print(result)
         self.assertAlmostEqual(result, 64.7, 1) # seems high - should be around 50?
 
+    def test_compare_optimal_to_average_optimal(self) -> None:
+        longitude : float = 144.9631
+        latitude : float = -37.8136
+        altitude : float = 0
+        timezone : float = 10
+        optimiser : Optimiser = Optimiser(PhotoVoltaicEducation())
+        result_32 : list[float] = optimiser.calculate_monthly_power(longitude, latitude, altitude, timezone, 32)
+        result_15 : list[float] = optimiser.calculate_monthly_power(longitude, latitude, altitude, timezone, 15)
+        result_49 : list[float] = optimiser.calculate_monthly_power(longitude, latitude, altitude, timezone, 49)
+        for idx, x in enumerate(result_15):
+            print(str(x) + "," + str(result_32[idx]) + "," + str(result_49[idx]))
+        # Looks like an array of 15 degrees and another equal sized array of 49 degrees will give 4% less power than 32 degrees.
+        # but with a similar annual power profile to 32 degrees. 
+
     def test_show_monthly(self) -> None:
         longitude : float = 144.9631
         latitude : float = -37.8136
@@ -40,7 +54,7 @@ class TestAnalysis(TestCase):
         latitude : float = -37.8136
         altitude : float = 0
         timezone : float = 10
-        optimiser : Optimiser = Optimiser(PySolarFacade())
+        optimiser : Optimiser = Optimiser(PhotoVoltaicEducation())
 
         cost_table : list[float] = [0]*13
         cost_table[1] = 1.1
